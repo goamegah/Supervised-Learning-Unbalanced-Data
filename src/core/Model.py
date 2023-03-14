@@ -7,13 +7,17 @@ from src.globals import MODEL_HYPERPARAMETERS_DEF
 from sklearn.model_selection import GridSearchCV
 
 
-
 class Model:
 
-    def __init__(self, model_name: str, hyperparameters: dict = None, grid_search: GridSearchCV=None):
+    def __init__(
+            self,
+            model_name: str,
+            hyperparameters: dict = None,
+            grid_search: GridSearchCV = None
+    ):
         self.model_name = model_name
-        if grid_search == None:
-            if hyperparameters == None:
+        if grid_search is None:
+            if hyperparameters is None:
                 hyperparameters = MODEL_HYPERPARAMETERS_DEF[self.model_name]
             self.hyperparameters = hyperparameters
             if model_name == "Logistic Regression":
@@ -23,16 +27,16 @@ class Model:
             elif model_name == "DecisionTreeClassifier":
                 self.model = DecisionTreeClassifier(**self.hyperparameters)
         else:
-            self.model=None
-            self.hyperparameters=None
-            self.grid_search=grid_search
+            self.model = None
+            self.hyperparameters = None
+            self.grid_search = grid_search
 
     def update(self):
         """
         :return: update model only for GridSearchCV
         """
-        self.model=self.grid_search.best_estimator_
-        self.hyperparameters=self.grid_search.best_params_
+        self.model = self.grid_search.best_estimator_
+        self.hyperparameters = self.grid_search.best_params_
 
     def fit(self, X, y):
         self.model.fit(X, y)
@@ -42,7 +46,7 @@ class Model:
             dist_to_hyperplan = self.model.decision_function(X)
             try:
                 return (dist_to_hyperplan - dist_to_hyperplan.min()) / (
-                            dist_to_hyperplan.max() - dist_to_hyperplan.min())
+                        dist_to_hyperplan.max() - dist_to_hyperplan.min())
             except ZeroDivisionError:
                 print(f"A problem occur during min-max normalization for testset:{X}")
         elif self.model_name == "Logistic Regression" or self.model_name == "DecisionTreeClassifier":
@@ -52,11 +56,12 @@ class Model:
         return self.model.predict(X)
 
     def metrics(self, X, y, plot_roc=False, ax: Axes = False):
-        precision, recall, f1_score, support = precision_recall_fscore_support(y, self.predict(X), average="binary",pos_label=True)
+        precision, recall, f1_score, support = precision_recall_fscore_support(y, self.predict(X), average="binary",
+                                                                               pos_label=True)
         fpr, tpr, thresholds = roc_curve(y, self.predict_proba(X))
         auc_value = auc(fpr, tpr)
         if plot_roc:
-            if ax == None:
+            if ax is None:
                 raise Exception(f"{ax} for plotting roc curve is None")
             ax.plot(fpr, tpr)
             ax.set_ylabel('True Positive Rate')
