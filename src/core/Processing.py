@@ -33,13 +33,35 @@ class Processing:
             self,
             df: pd.DataFrame
     ) -> dict:
-        constant_features = [c for c in df.columns if df[c].min() == df[c].max()]
-        return {
-            "Missing Values": df.isna().sum(),
-            "Constant Features": constant_features
-        }
+        """
+        function that give an overview of missing value and constant features
+        :param df:
+        :return:
+            dictionary {
+            column : number of missing value
+            constant features : [list of features]
+            }
 
-    def remove_constant_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+
+        # simple mathematical rule checking
+        constant_features = [c for c in df.columns if df[c].min() == df[c].max()]
+        return \
+            {
+                "Missing Values": df.isna().sum(),
+                "Constant Features": constant_features
+            }
+
+    def remove_constant_features(
+            self,
+            df: pd.DataFrame
+    ) -> pd.DataFrame:
+        """
+        function help to remove if required constant features
+        :param df:
+        :return:
+            new dqta frame
+        """
         return df[[c for c in df.columns if c not in self.summary(df)["Constant Features"]]]
 
     def remove_outliers(
@@ -47,11 +69,27 @@ class Processing:
             df: pd.DataFrame,
             threshold=1.5
     ) -> pd.DataFrame:
+        """
+        help function to remove outliers with statistical method
+
+        :param df:
+        :param threshold:
+        :return:
+            new data frame
+        """
+
         qualitatives = selector(dtype_include=object)(df)
         quantitatives = [c for c in df.columns if c not in qualitatives]
 
         def quantile(s):
+            """
+            help function that compute quantile of distributiion
+            :param s:
+            :return:
+            """
+            # we need to restric to all dataframe derived
             assert isinstance(s, pd.Series)
+
             q_025 = s.quantile(.25)
             q_075 = s.quantile(.75)
             iq = q_075 - q_025

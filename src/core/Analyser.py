@@ -5,6 +5,7 @@ from sklearn.compose import make_column_selector as selector
 from matplotlib.axes._axes import Axes
 import seaborn as sns
 from scipy.stats import chi2_contingency
+from matplotlib.ticker import FuncFormatter
 
 
 class Analyser:
@@ -15,30 +16,63 @@ class Analyser:
             self,
             df_c: pd.DataFrame
     ) -> dict:
-        qualitatives = selector(dtype_include=object)(df_c)
+        qualitative_features = selector(dtype_include=object)(df_c)
 
-        return {"features":
+        return \
             {
-                "qualitative_columns": qualitatives, \
-                "quantitative_columns": [c for c in df_c if c not in qualitatives]
-            },
-            "describe": df_c.describe(),
-        }
+                "features":
+                    {
+                        "qualitative_columns": qualitative_features,
+                        "quantitative_columns":
+                            [c for c in df_c if c not in qualitative_features]
+                    },
+                "describe": df_c.describe(),
+            }
 
-    def bar_chart(self, df_c: pd.DataFrame, col_name, ax: Axes, with_proportion=False) -> object:
+    def bar_chart(
+            self,
+            df_c: pd.DataFrame,
+            col_name,
+            ax: Axes,
+            with_proportion=False
+    ) -> object:
         summary = self.summary(df_c)
         if not col_name in summary["features"]["qualitative_columns"]:
-            raise Exception(f"{col_name} should be a qualitative colums from {df_c}")
+            raise Exception(f"{col_name} should be a qualitative columns from {df_c}")
         cats_heights = df_c[col_name].value_counts()
         weight = 1 if not with_proportion else 1 / cats_heights.sum()
         cats_heights *= weight
         ax.bar(cats_heights.index, cats_heights.values)
-        ax.set_title(f"Frequency Barchart of {col_name}")
+        ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: cats_heights.index[int(x)]))
+
+        y_label = 'Frequency' if with_proportion else 'Counts'
+
+        ax.set_title(f'{y_label} Barchart of {col_name}')
         ax.set_xlabel("Modality")
-        ax.set_ylabel("Frequency")
+        ax.set_ylabel(f'{y_label}')
+
+        # we use ax.set_xticks and pass in a range of integers from 0 to the length of counts.
+        ax.set_xticks(range(len(cats_heights)))
+        # we use ax.set_xticklabels and pass in the index values from counts.
+        # This sets the tick labels to be the same as the original index values in counts.
+        ax.set_xticklabels(cats_heights.index)
+
+        # pour des labels plus compacts
+        ax.ticklabel_format(axis='y', scilimits=(1, 4))
+
+        # annotations
+        for i, j in enumerate(cats_heights):
+            ax.text(i, j+max(cats_heights.values)/80, cats_heights.iloc[i], ha='center')
+
         return cats_heights
 
-    def prop_churn_by_cats(self, df_c: pd.DataFrame, outcome: str, cats_name: str, loc="upper right") -> None:
+    def prop_churn_by_cats(
+            self,
+            df_c: pd.DataFrame,
+            outcome: str,
+            cats_name: str,
+            loc="upper right"
+    ) -> None:
         summary = self.summary(df_c)
         if not cats_name in summary["features"]["qualitative_columns"] or \
                 not outcome in summary["features"]["qualitative_columns"]:
@@ -79,7 +113,8 @@ class Analyser:
             label=[positive_mod, f"Not {positive_mod}"],
             color=["blue", "black"],
             density=density,
-            stacked=True)
+            stacked=True
+        )
         ax.set_title(f"histogram of {numericals_name} conditioned by {outcome}")
         ax.set_ylabel("Density" if density == True else "Count")
         ax.legend(loc=loc)
@@ -95,12 +130,17 @@ class Analyser:
         summary = self.summary(df_c)
         if not numericals_name in summary["features"]["quantitative_columns"] or \
                 not outcome in summary["features"]["qualitative_columns"]:
-            raise Exception(f"{outcome} should be a qualitative columns  and \
-                {numericals_name} should be a quantitative column from {df_c}")
+            raise Exception(
+                f"{outcome} should be a qualitative columns  and \
+                {numericals_name} should be a quantitative column from {df_c}"
+            )
+
         mask_churn = df_c[outcome] == positive_mod
         churn = df_c.loc[mask_churn][numericals_name].copy()
         non_churn = df_c.loc[~mask_churn][numericals_name].copy()
+
         ax.boxplot([np.array(churn).reshape(-1), np.array(non_churn).reshape(-1)])
+
         ax.set_xticklabels([positive_mod, f"Not{positive_mod}"])
         ax.set_title(f"Boxplot of {numericals_name} conditioned by {outcome}")
 

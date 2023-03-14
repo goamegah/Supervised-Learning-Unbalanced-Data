@@ -41,6 +41,7 @@ class Model:
     def fit(self, X, y):
         self.model.fit(X, y)
 
+    # ============>>>>> Some BUG HERE <<<<<<<<=================
     def predict_proba(self, X):
         if self.model_name == "SVM":
             dist_to_hyperplan = self.model.decision_function(X)
@@ -56,8 +57,12 @@ class Model:
         return self.model.predict(X)
 
     def metrics(self, X, y, plot_roc=False, ax: Axes = False):
-        precision, recall, f1_score, support = precision_recall_fscore_support(y, self.predict(X), average="binary",
-                                                                               pos_label=True)
+        precision, recall, f1_score, support = precision_recall_fscore_support(
+            y,
+            self.predict(X),
+            average="binary",
+            pos_label=True
+        )
         fpr, tpr, thresholds = roc_curve(y, self.predict_proba(X))
         auc_value = auc(fpr, tpr)
         if plot_roc:

@@ -29,13 +29,14 @@ class ComputeModel:
         if not self.grid_search:
             self.model = Model(model_name, hyperparameters=hyperparameters)
         else:
-            self.params_grid = PARAMS_GRID[model_name] if params_grid == None else params_grid
+            self.params_grid = PARAMS_GRID[model_name] if params_grid is None else params_grid
             self.model = Model(
                 model_name,
                 grid_search=GridSearchCV(Model(model_name).model,
                                          self.params_grid,
                                          verbose=verbose,
-                                         cv=cv))
+                                         cv=cv)
+            )
         self.process = process
         self.l_order = l_order
         modalities_y = pd.unique(self.y)
