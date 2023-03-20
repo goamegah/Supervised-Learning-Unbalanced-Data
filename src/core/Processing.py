@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler,normalize
 from sklearn.compose import make_column_selector as selector
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import OneHotEncoder
-from src.core.model.PreProcessing import PreProcessing
+from src.core.PreProcessing import PreProcessing
 
 
 

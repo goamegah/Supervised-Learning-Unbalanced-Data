@@ -1,4 +1,4 @@
-import src.core.model.Processing as pro
+import src.core.Processing as pro
 import pandas as pd
 from src.core import ComputeModel
 
