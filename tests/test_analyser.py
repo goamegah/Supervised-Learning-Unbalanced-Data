@@ -1,6 +1,6 @@
 import pandas as pd
-from src.core.Analyser import Analyser
-from src.core.Processing import Processing
+from src.core import Analyser
+from src.core import Processing
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":

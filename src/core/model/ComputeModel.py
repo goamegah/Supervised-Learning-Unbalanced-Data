@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from matplotlib.axes import Axes
 from sklearn.model_selection import train_test_split, StratifiedKFold
-from src.core.Processing import Processing
-from src.core.Model import Model
+from src.core.model.Processing import Processing
+from src.core.model.Model import Model
 from sklearn.model_selection import GridSearchCV,RandomizedSearchCV
 from src.globals import PARAMS_GRID
 

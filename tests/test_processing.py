@@ -1,5 +1,5 @@
 import pandas as pd
-from src.core.Processing import Processing
+from src.core import Processing
 
 if __name__ == "__main__":
     file_path="/home/khaldi/Documents/data_app_machine/whole_data.csv"

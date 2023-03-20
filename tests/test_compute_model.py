@@ -1,6 +1,6 @@
-import src.core.Processing as pro
+import src.core.model.Processing as pro
 import pandas as pd
-from src.core.ComputeModel import ComputeModel
+from src.core import ComputeModel
 
 if __name__=="__main__":
     file_path="/home/khaldi/Documents/data_app_machine/whole_data.csv"
