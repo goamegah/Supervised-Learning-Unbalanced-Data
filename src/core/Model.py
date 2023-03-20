@@ -21,7 +21,7 @@ class Model:
             if model_name == "Logistic Regression":
                 self.model = LogisticRegression(**self.hyperparameters)
             elif model_name == "SVM":
-                self.model = SVC(**self.hyperparameters)
+                self.model = SVC(**self.hyperparameters, probability=True)
             elif model_name == "DecisionTreeClassifier":
                 self.model = DecisionTreeClassifier(**self.hyperparameters)
             elif model_name == "RandomForestClassifier":
@@ -42,15 +42,20 @@ class Model:
         self.model.fit(X, y)
 
     def predict_proba(self, X):
-        if self.model_name == "SVM":
-            dist_to_hyperplan = self.model.decision_function(X)
-            try:
+        """
+
+        :param X:
+        :return:
+        #if self.model_name == "SVM":
+        try:
                 return (dist_to_hyperplan - dist_to_hyperplan.min()) / (
                             dist_to_hyperplan.max() - dist_to_hyperplan.min())
             except ZeroDivisionError:
                 print(f"A problem occur during min-max normalization for testset:{X}")
-        else:
+                 else:
             return self.model.predict_proba(X)[:, 1]
+        """
+        return self.model.predict_proba(X)[:, 1]
 
     def predict(self, X):
         return self.model.predict(X)
