@@ -1,6 +1,5 @@
-from random import randint
-
 import numpy as np
+from scipy.constants import hp
 
 MODEL_HYPERPARAMETERS_DEF = \
     {
@@ -54,7 +53,31 @@ MODEL_HYPERPARAMETERS_DEF = \
             "ccp_alpha":0.0,
             "max_samples":None
 
-        }
+        },
+        "GradientBoostingClassifier":
+            {
+                "loss":"log_loss",
+                "learning_rate":0.1,
+                "n_estimators":100,
+                "subsample":1.0,
+                "criterion":"friedman_mse",
+                "min_samples_split":2,
+                "min_samples_leaf":1,
+                "min_weight_fraction_leaf":0.0,
+                "max_depth":3,
+                "min_impurity_decrease":0.0,
+                "init":None,
+                "random_state":None,
+                "max_features":None,
+                "verbose":0,
+                "max_leaf_nodes":None,
+                "warm_start":False,
+                "validation_fraction":0.1,
+                "n_iter_no_change":None,
+                "tol":1e-4,
+                "ccp_alpha":0.0,
+            }
+
     }
 
 PARAMS_GRID = \
@@ -95,7 +118,11 @@ PARAMS_GRID = \
             {
                 "n_estimators":list(np.random.randint(50,500,size=5)),
                 "max_depth":list(np.random.randint(1,20,size=5))
+            },
+        "GradientBoostingClassifier":
+            {
+                "learning_rate":[0.15,0.1,0.05,0.01,0.005,0.001],
+                "n_estimators":[100,250,500,750,1000,1250,1500,1750]
             }
-
     }
 

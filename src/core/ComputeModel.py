@@ -7,7 +7,6 @@ from src.core.Model import Model
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from src.core.globals import PARAMS_GRID
 
-
 class ComputeModel:
 
     def __init__(
@@ -60,11 +59,17 @@ class ComputeModel:
             df = self.process.df_to_numerical(df, l_order=self.l_order)["df_transform"]
             return {"df_transform": df}
 
-    def split(self, test_size=.2, random_state=42) -> None:
+    def split(self, test_size=.2, random_state=42,method="SMOTE",sampling=True,perc_minority=.5) -> None:
         df_to_np = self.numerize(self.df_X)
         X = np.array(df_to_np["df_transform"])
         mapping = df_to_np["mapping"] if "mapping" in df_to_np.keys() else None
         y = np.array(self.y == self.positive_mod).reshape(-1)
+        if sampling == True:
+            if method == "SMOTE":
+                X,y=self.process.oversampling(X,y,perc_minority="auto" if perc_minority==.5 else perc_minority)
+            elif method == "RandomUnderSampling":
+                X,y=self.process.undersampling(X,y,perc_minority=perc_minority)
+
         stratify = y if self.stratify else None
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state,
                                                             stratify=stratify)
@@ -91,8 +96,8 @@ class ComputeModel:
                     "columns_features": df_to_np["df_transform"].columns
                 }
 
-    def fit(self, test_size=.2, random_state=42) -> None:
-        self.split(test_size, random_state)
+    def fit(self, test_size=.2, random_state=42,sampling=False,method="SMOTE",perc_minority=.5) -> None:
+        self.split(test_size, random_state,method=method,sampling=sampling,perc_minority=perc_minority)
         X_train = self.dict_split["arrays"]["X_train"]
         y_train = self.dict_split["arrays"]["y_train"]
         if not self.search:
@@ -102,11 +107,21 @@ class ComputeModel:
             self.model.update()
 
     def metrics(self, plot_roc=False, ax: Axes = None):
+        if not hasattr(self,"dict_split"):
+            raise Exception("fit should be called before metrics")
         X, y = self.dict_split["arrays"]["X_test"], self.dict_split["arrays"]["y_test"]
         return self.model.metrics(X, y.reshape(-1), plot_roc=plot_roc, ax=ax)
 
     def predict_proba(self, df: pd.DataFrame):
         return self.model.predict_proba(np.array(self.numerize(df)["df_transform"]))
+
+    def decomp_bias_variance(self,random_seed=123,loss="0-1_loss"):
+        X_train,y_train=self.dict_split["arrays"]["X_train"],self.dict_split["arrays"]["y_train"]
+        X_test,y_test=
+        return {avg_metric: value for avg_metric,value in zip(["avg_expected_loss", "avg_bias", "avg_var"],bias_variance_decomp(
+            tree, X_train, y_train, X_test, y_test,
+            loss=loss,
+            random_seed=random_seed))}
 
     def permutation_importance_model(self, scoring="roc_auc"):
         return self.model.permutation_importance_model(
@@ -114,3 +129,4 @@ class ComputeModel:
             self.dict_split["arrays"]["y_train"],
             scoring
         )
+

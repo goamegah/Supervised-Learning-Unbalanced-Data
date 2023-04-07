@@ -5,7 +5,7 @@ from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import precision_recall_fscore_support, roc_curve, auc
 from src.core.globals import MODEL_HYPERPARAMETERS_DEF
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.inspection import permutation_importance
 
 
@@ -26,6 +26,9 @@ class Model:
                 self.model = DecisionTreeClassifier(**self.hyperparameters)
             elif model_name == "RandomForestClassifier":
                 self.model = RandomForestClassifier(**self.hyperparameters)
+            elif model_name == "GradientBoostingClassifier":
+                self.model = GradientBoostingClassifier(**self.hyperparameters)
+
         else:
             self.model = None
             self.hyperparameters = None

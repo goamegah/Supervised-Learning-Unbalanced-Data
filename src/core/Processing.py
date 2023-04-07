@@ -6,7 +6,8 @@ from sklearn.compose import make_column_selector as selector
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import OneHotEncoder
 from src.core.PreProcessing import PreProcessing
-
+from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import RandomUnderSampler
 
 class Processing:
 
@@ -110,5 +111,16 @@ class Processing:
                 {
                     "df_transform": df_transform
                 }
+    def oversampling(self,df_X: pd.DataFrame,s_y:pd.Series,method="SMOTE",random_state=42,perc_minority="auto"):
+        if method == "SMOTE":
+            sm=SMOTE(random_state=random_state,sampling_strategy=perc_minority)
+            return sm.fit_resample(df_X,np.array(s_y).reshape(-1))
 
-# %%
+
+    def undersampling(self,df_X: pd.DataFrame,s_y:pd.Series,method="RandomUnderSampling",perc_minority=.5):
+        if method == "RandomUnderSampling":
+            undersample = RandomUnderSampler(sampling_strategy=perc_minority)
+            return undersample.fit_resample(df_X,np.array(s_y).reshape(-1))
+
+
+
