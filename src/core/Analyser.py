@@ -3,6 +3,7 @@ import pandas as pd
 from scipy.stats._stats_py import SignificanceResult
 from sklearn.compose import make_column_selector as selector
 from matplotlib.axes._axes import Axes
+from matplotlib.ticker import FuncFormatter
 import seaborn as sns
 from scipy.stats import chi2_contingency
 
@@ -33,6 +34,43 @@ class Analyser:
         ax.set_title(f"Frequency Barchart of {col_name}")
         ax.set_xlabel("Modality")
         ax.set_ylabel("Frequency")
+        return cats_heights
+
+    def bar_chart_annotated(
+            self,
+            df_c: pd.DataFrame,
+            col_name,
+            ax: Axes,
+            with_proportion=False
+    ) -> object:
+        summary = self.summary(df_c)
+        if not col_name in summary["features"]["qualitative_columns"]:
+            raise Exception(f"{col_name} should be a qualitative columns from {df_c}")
+        cats_heights = df_c[col_name].value_counts()
+        weight = 1 if not with_proportion else 1 / cats_heights.sum()
+        cats_heights *= weight
+        ax.bar(cats_heights.index, cats_heights.values)
+        ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: cats_heights.index[int(x)]))
+
+        y_label = 'Frequency' if with_proportion else 'Counts'
+
+        ax.set_title(f'{y_label} Barchart of {col_name}')
+        ax.set_xlabel("Modality")
+        ax.set_ylabel(f'{y_label}')
+
+        # we use ax.set_xticks and pass in a range of integers from 0 to the length of counts.
+        ax.set_xticks(range(len(cats_heights)))
+        # we use ax.set_xticklabels and pass in the index values from counts.
+        # This sets the tick labels to be the same as the original index values in counts.
+        ax.set_xticklabels(cats_heights.index)
+
+        # pour des labels plus compacts
+        ax.ticklabel_format(axis='y', scilimits=(1, 4))
+
+        # annotations
+        for i, j in enumerate(cats_heights):
+            ax.text(i, j+max(cats_heights.values)/80, cats_heights.iloc[i], ha='center')
+
         return cats_heights
 
     def prop_churn_by_cats(self, df_c: pd.DataFrame, outcome: str, cats_name: str, loc="upper right") -> None:
