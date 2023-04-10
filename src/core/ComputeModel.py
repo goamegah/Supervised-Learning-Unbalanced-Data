@@ -115,6 +115,7 @@ class ComputeModel:
     def predict_proba(self, df: pd.DataFrame):
         return self.model.predict_proba(np.array(self.numerize(df)["df_transform"]))
 
+    """
     def decomp_bias_variance(self,random_seed=123,loss="0-1_loss"):
         X_train,y_train=self.dict_split["arrays"]["X_train"],self.dict_split["arrays"]["y_train"]
         X_test,y_test=
@@ -122,6 +123,8 @@ class ComputeModel:
             tree, X_train, y_train, X_test, y_test,
             loss=loss,
             random_seed=random_seed))}
+    """
+
 
     def permutation_importance_model(self, scoring="roc_auc"):
         return self.model.permutation_importance_model(
