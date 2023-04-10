@@ -2,7 +2,7 @@
 name = "app-machine"
 version = "0.1.0"
 description = "Preprocessing/Processing/MachineLearning Model"
-authors = ["khaldi <jalalkhaldi3@gmail.com>"]
+authors = ["khaldi <jalalkhaldi3@gmail.com>", "godwin <winneramegah492@gmail.com>"]
 readme = "README.md"
 packages = [{include = "./src"}]
 
