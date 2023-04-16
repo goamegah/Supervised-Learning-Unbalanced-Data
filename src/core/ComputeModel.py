@@ -5,7 +5,9 @@ from sklearn.model_selection import train_test_split, StratifiedKFold
 from src.core.Processing import Processing
 from src.core.Model import Model
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from sklearn.metrics import zero_one_loss
 from src.core.globals import PARAMS_GRID
+from mlxtend.evaluate import bias_variance_decomp
 
 class ComputeModel:
 
@@ -108,22 +110,14 @@ class ComputeModel:
 
     def metrics(self, plot_roc=False, ax: Axes = None):
         if not hasattr(self,"dict_split"):
-            raise Exception("fit should be called before metrics")
+            raise Exception("a train/test set should defined.")
         X, y = self.dict_split["arrays"]["X_test"], self.dict_split["arrays"]["y_test"]
         return self.model.metrics(X, y.reshape(-1), plot_roc=plot_roc, ax=ax)
 
     def predict_proba(self, df: pd.DataFrame):
         return self.model.predict_proba(np.array(self.numerize(df)["df_transform"]))
 
-    """
-    def decomp_bias_variance(self,random_seed=123,loss="0-1_loss"):
-        X_train,y_train=self.dict_split["arrays"]["X_train"],self.dict_split["arrays"]["y_train"]
-        X_test,y_test=
-        return {avg_metric: value for avg_metric,value in zip(["avg_expected_loss", "avg_bias", "avg_var"],bias_variance_decomp(
-            tree, X_train, y_train, X_test, y_test,
-            loss=loss,
-            random_seed=random_seed))}
-    """
+
 
 
     def permutation_importance_model(self, scoring="roc_auc"):
@@ -133,3 +127,24 @@ class ComputeModel:
             scoring
         )
 
+
+
+    def bias_variance_estimate(self,bootstrap_rounds = 100):
+
+        self.split(.2, 42,method="SMOTE",sampling=True,perc_minority="auto")
+        estimator=self.model.model
+        X_train,y_train= pd.DataFrame(self.dict_split["arrays"]["X_train"]),pd.DataFrame(self.dict_split["arrays"]["y_train"].reshape(-1))
+        X_test,y_test= pd.DataFrame(self.dict_split["arrays"]["X_test"]),pd.DataFrame(self.dict_split["arrays"]["y_test"].reshape(-1))
+
+        # initialize dataframe for storing predictions on test data
+        preds_test = pd.DataFrame(index = y_test.index)
+        # for each round: draw bootstrap indices, train model on bootstrap data and make predictions on test data
+        for r in range(bootstrap_rounds):
+            boot = np.random.randint(len(y_train), size = len(y_train))
+            preds_test[f'Model {r}'] = estimator.fit(np.array(X_train.iloc[boot, :]), np.array(y_train.iloc[boot]).ravel()).predict(X_test)
+        # calculate "average model"'s predictions
+        mean_pred_test = preds_test.mean(axis = 1) >= .5
+
+        bias_squared = zero_one_loss(y_test, mean_pred_test)
+        variance = preds_test.apply(lambda pred_test: zero_one_loss(mean_pred_test, pred_test)).mean()
+        return bias_squared, variance

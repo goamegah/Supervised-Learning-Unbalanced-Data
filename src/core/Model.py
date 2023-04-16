@@ -70,7 +70,7 @@ class Model:
         auc_value = auc(fpr, tpr)
         if plot_roc:
             if ax is None:
-                raise Exception(f"{ax} for plotting roc curve is None")
+                raise Exception(f"{ax} for plot roc curve is None")
             ax.plot(fpr, tpr)
             ax.set_ylabel('True Positive Rate')
             ax.set_xlabel('False Positive Rate')
