@@ -7,7 +7,6 @@ from src.core.Model import Model
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.metrics import zero_one_loss
 from src.core.globals import PARAMS_GRID
-from mlxtend.evaluate import bias_variance_decomp
 
 class ComputeModel:
 
