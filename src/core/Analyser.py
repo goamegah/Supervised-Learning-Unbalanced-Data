@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from scipy.stats._stats_py import SignificanceResult
 from sklearn.compose import make_column_selector as selector
 from matplotlib.axes._axes import Axes
 from matplotlib.ticker import FuncFormatter
@@ -12,9 +11,12 @@ class Analyser:
     def __init__(self):
         pass
 
+    # Define a method to return a summary of the DataFrame including qualitative and quantitative columns
     def summary(self, df_c: pd.DataFrame) -> dict:
+        # Select the qualitative columns using sklearn's make_column_selector method
         qualitatives = selector(dtype_include=object)(df_c)
 
+        # Return a dictionary containing the qualitative and quantitative columns, as well as a description of the DataFrame
         return {"features":
             {
                 "qualitative_columns": qualitatives,
@@ -24,6 +26,7 @@ class Analyser:
         }
 
     def bar_chart(self, df_c: pd.DataFrame, col_name, ax: Axes, with_proportion=False) -> object:
+        # Define a method to create a barchart for a specified qualitative column in the DataFrame
         summary = self.summary(df_c)
         if not col_name in summary["features"]["qualitative_columns"]:
             raise Exception(f"{col_name} should be a qualitative colums from {df_c}")
@@ -34,6 +37,7 @@ class Analyser:
         ax.set_title(f"Frequency Barchart of {col_name}")
         ax.set_xlabel("Modality")
         ax.set_ylabel("Frequency")
+        # Return the frequencies/proportions as a pandas Series object
         return cats_heights
 
     def bar_chart_annotated(
@@ -74,12 +78,17 @@ class Analyser:
         return cats_heights
 
     def prop_churn_by_cats(self, df_c: pd.DataFrame, outcome: str, cats_name: str, loc="upper right") -> None:
+        # Define a method to create a stacked barchart of the proportions of churn vs. non churn for a specified categorical column in the DataFrame
         summary = self.summary(df_c)
+        # Raise an exception if either the outcome or the categorical column is not qualitative
         if not (cats_name in summary["features"]["qualitative_columns"]) or \
                 not (outcome in summary["features"]["qualitative_columns"]):
             raise Exception(f"{outcome} and {cats_name} should be a qualitative columns from {df_c}")
+        # Calculate the counts of churn and non-churn for each modality of the categorical column
         churn_by_cats = df_c.groupby([cats_name, outcome]).size().unstack()
+        # Calculate the proportions of churn and non-churn for each modality of the categorical column
         proportions = churn_by_cats.apply(lambda x: x / x.sum(), axis=1)
+        # Create a stacked barchart of the proportions
         ax = proportions.plot(kind='bar', stacked=True)
         ax.set_title(f"Proportions of churn vs. non churn by {cats_name}")
         ax.set_xlabel(cats_name)
@@ -98,6 +107,20 @@ class Analyser:
             density=True,
             loc="upper right"
     ) -> None:
+        """
+        Parameters:
+        df_c (pd.DataFrame): The DataFrame containing the data to be plotted.
+        outcome (str): The name of the qualitative feature.
+        positive_mod (str): The value of the qualitative feature that is considered positive.
+        numericals_name (str): The name of the quantitative feature.
+        ax (Axes): The Axes object on which to plot the histogram.
+        n_bins (int): The number of bins to use for the histogram. Default is 5.
+        alpha (float): The transparency of the bars in the histogram. Default is 0.75.
+        density (bool): Whether to normalize the histogram so that the area under the bars sums to 1. Default is True.
+        loc (str): The location of the legend. Default is "upper right".
+        The histogram is split into two parts: one for rows where the outcome is the positive_mod,
+        and one for rows where it is not.
+        """
         summary = self.summary(df_c)
         if not numericals_name in summary["features"]["quantitative_columns"] or \
                 not outcome in summary["features"]["qualitative_columns"]:
@@ -126,6 +149,20 @@ class Analyser:
             numericals_name: str,
             ax: Axes
     ):
+        """
+           Plots a boxplot of a quantitative feature conditioned by a qualitative feature, where
+           the qualitative feature is the "outcome" and the quantitative feature is "numericals_name".
+           The boxplot is split into two parts: one for rows where the outcome is the positive_mod,
+           and one for rows where it is not.
+
+           Parameters:
+           df_c (pd.DataFrame): The DataFrame containing the data to be plotted.
+           outcome (str): The name of the qualitative feature.
+           positive_mod (str): The value of the qualitative feature that is considered positive.
+           numericals_name (str): The name of the quantitative feature.
+           ax (Axes): The Axes object on which to plot the boxplot.
+
+        """
         summary = self.summary(df_c)
         if not (numericals_name in summary["features"]["quantitative_columns"]) or \
                 not (outcome in summary["features"]["qualitative_columns"]):
@@ -141,12 +178,22 @@ class Analyser:
         ax.set_title(f"Boxplot of {numericals_name} conditioned by {outcome}")
 
     def correlation_heatmap(self, df_c: pd.DataFrame, annot=False):
+        # Compute the correlation matrix for the numerical columns in the given DataFrame
         df_corr = df_c.corr(numeric_only=True)
+        # Plot a heatmap of the correlation matrix, with optional annotations
         return sns.heatmap(df_c[df_corr.index].corr(), annot=annot, cmap="RdYlGn", fmt=".2f")
 
-    def quali_xquali_khi2(self, quali_y: pd.Series, quali_x: pd.Series) -> SignificanceResult:
+    def quali_xquali_khi2(self, quali_y: pd.Series, quali_x: pd.Series):
+        """
+        The method takes two Pandas Series objects quali_y and quali_x as inputs.
+        returns the p-value for the chi-square test of independence between the two categorical variables.
+        """
+        # Check if the inputs are Series objects
         if not (isinstance(quali_x, pd.Series) and isinstance(quali_y, pd.Series)):
             raise TypeError(f"{quali_y} and {quali_x} should be a Series objects")
+        # Compute the contingency table of the two categorical variables
         res = pd.crosstab(quali_y, quali_x)
+        # Compute the chi-square statistic and p-value for the contingency table
         Khi2_obs, p_value, ddl, theo_count = chi2_contingency(res)
+        # Return the p-value
         return p_value

@@ -13,11 +13,13 @@ class Model:
 
     def __init__(self, model_name: str, hyperparameters: dict = None,
                  search: GridSearchCV or RandomizedSearchCV = None):
+        # Initializing instance variables
         self.model_name = model_name
         if search is None:
             if hyperparameters is None:
                 hyperparameters = MODEL_HYPERPARAMETERS_DEF[self.model_name]
             self.hyperparameters = hyperparameters
+            # Creating models with specified hyperparameters
             if model_name == "Logistic Regression":
                 self.model = LogisticRegression(**self.hyperparameters)
             elif model_name == "SVM":
@@ -36,34 +38,35 @@ class Model:
 
     def update(self):
         """
-        :return: update model only for GridSearchCV
+        Updates the model based on the search object's best estimator and hyperparameters
+        ONLY USING FOR TUNING HYPERPARAMETERS
         """
         self.model = self.search.best_estimator_
         self.hyperparameters = self.search.best_params_
 
     def fit(self, X, y):
+        """
+        Fits the model to the training data X and labels y
+        """
         self.model.fit(X, y)
 
     def predict_proba(self, X):
         """
-
-        :param X:
-        :return:
-        #if self.model_name == "SVM":
-        try:
-                return (dist_to_hyperplan - dist_to_hyperplan.min()) / (
-                            dist_to_hyperplan.max() - dist_to_hyperplan.min())
-            except ZeroDivisionError:
-                print(f"A problem occur during min-max normalization for testset:{X}")
-                 else:
-            return self.model.predict_proba(X)[:, 1]
+        Predicts class probabilities for the input data X
         """
         return self.model.predict_proba(X)[:, 1]
 
     def predict(self, X):
+        """
+        Predicts the class labels for the input data X
+        """
         return self.model.predict(X)
 
     def metrics(self, X, y, plot_roc=False, ax: Axes = False):
+        """
+        Computes model performance metrics given test data X and true labels y
+        if plot_roc=True: roc_curve are set up in ax attribute of the method
+        """
         precision, recall, f1_score, support = precision_recall_fscore_support(y, self.predict(X), average="binary",
                                                                                pos_label=True)
         fpr, tpr, thresholds = roc_curve(y, self.predict_proba(X))
@@ -84,8 +87,14 @@ class Model:
         }
 
     def plot_model(self):
+        """
+        Plots the decision tree for the DecisionTreeClassifier model
+        """
         if self.model_name == "DecisionTreeClassifier":
             return plot_tree(self.model)
 
     def permutation_importance_model(self, X, y, scoring):
+        """
+        Computes feature importance scores for the model using permutation importance
+        """
         return permutation_importance(self.model, X, y, scoring=scoring)

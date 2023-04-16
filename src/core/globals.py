@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.constants import hp
 
 MODEL_HYPERPARAMETERS_DEF = \
     {
